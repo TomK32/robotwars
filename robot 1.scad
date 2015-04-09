@@ -21,24 +21,31 @@ module lid_brackets(size) {
 module bot_name(height = 0.02) {
     font = "Liberation Sans";
     linear_extrude(height = height) {
-        text("ANTidote 01", font = font, size = 0.5);
+        text("ANTidote 01", font = font, size = 0.5, halign="right");
     }
 }
     
 scale(10) translate([0,0,1]) {
 
-    bot_l = 7;
-    bot_w = 4;
     wall = 0.5;
+    bot_l = 8;
+    bot_w = 7;
+    bot_h = 1.8+wall*2;
     union() {
         difference(){
-            cube([bot_l,bot_w,2], center = true);
-            translate([0,0,wall/2]) cube([bot_l - 2*wall, bot_w - 2*wall, 2], center = true);
+            cube([bot_l, bot_w, bot_h], center = true);
+            translate([0,0,wall/2]) cube([bot_l - 2*wall, bot_w - 2*wall, bot_h-wall/2], center = true);
             // motor holes
-            motor_w = 0.5; motor_h = 0.3;
-            translate([-bot_w+3*wall+0.01,0,-wall+ motor_h/2]) {
-                cube([motor_w, bot_w+motor_h, 0.75], center = true);
-                rotate([90, 0, 0]) podest(cube_size = [motor_w,motor_h,bot_w]);
+            motor_w = 2.3; motor_h = 1.8;
+            translate([-bot_l/2 + motor_w/2 + wall*2/3, 0, -bot_h/2 + motor_h/2 + wall*2/3])
+            translate([0,0,0]) {
+                cube([motor_w, bot_w, motor_h], center = true);
+                rotate([90, 0, 0]) {
+                    minkowski([1, 1, 1]) {
+                        cube([motor_w,motor_h,bot_w], true)
+                        cylinder(r=0.2,h=0.1);
+                    }
+                }
             }
             // back side holes
             translate([-bot_l/2+wall/2,0,wall]) {
@@ -47,7 +54,7 @@ scale(10) translate([0,0,1]) {
             }
             
             // slope cut at front 
-            translate([4,0,0.25]) rotate([0, 20, 0]) {
+            translate([bot_l/2+wall,0,0.25]) rotate([0, 20, 0]) {
                 cube([bot_l *2,bot_w + 1, 2], center = true);
                 
                 // brackets for push-in cover#
@@ -56,13 +63,17 @@ scale(10) translate([0,0,1]) {
                     translate([0, -bot_w/2 + wall/2, 0]) lid_brackets(wall);
                 }
             }
-            translate([-bot_l/3+wall,-bot_w/2+0.01,-0.75]) rotate([90,0,0]) bot_name();
+            // bot name on the side of the case
+            translate([bot_l/3,-bot_w/2+0.01,-bot_h/2+wall/2]) rotate([90,0,0]) bot_name();
 
         }
         
-        translate([0.25, 0, -wall*3/2]) {
-            podest(cube_size = [bot_l-2,bot_w-2,wall/2]);
-            translate([3.3/2, -1.8/2, 0.125 + 0.1])
+        // main controller
+        controller_l = 3.3;
+        controller_w = 1.8;
+        translate([controller_w/5, 0, -bot_h/2+wall]) rotate([0,0,90]) {
+            podest(cube_size = [3.3,1.8,wall/2]);
+            translate([controller_l/2, -controller_w/2, 0.125 + 0.1])
                 rotate([0, 0, 90]) resize(newsize=[1.8, 3.3, 0.08]) {
                 import("/Users/tomk32/Arbeit/DevLoL/openscad/Sparkfun_Pro_Mini/ProMini.stl");
             }
@@ -76,7 +87,8 @@ scale(10) translate([0,0,1]) {
                 translate([-bot_l+wall/4-0.1,0,-wall]) rotate([0, -20, 0])
                     cube([bot_l, bot_w*2, wall], center=true);
                 
-                translate([-2,bot_w/2-0.1,-wall+0.1]) rotate([0,0,180]) bot_name(height = 0.13);
+                // bot name
+                translate([-bot_l+wall*3,bot_w/2-0.1,-wall+0.1]) rotate([0,0,180]) bot_name(height = 0.13);
             }
             // lid pins
             translate([-wall/5, 0, -wall*1.25+0.01]) color([0, 1, 0]) {
