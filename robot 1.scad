@@ -1,9 +1,12 @@
+use <obiscad/obiscad/bcube.scad>;
+
 module podest() {
     minkowski(cube_size = [1, 1, 1]) {
      cube(cube_size, true);
      cylinder(r=0.2,h=0.01);
     }
 }
+
 
 module lid(w, h, d) {
     translate([-w/2, 0, -2*d])
@@ -31,21 +34,32 @@ scale(10) translate([0,0,1]) {
     bot_l = 8;
     bot_w = 7;
     bot_h = 1.8+wall*2;
+    motor_w = 2;
+    motor_h = 1.6;
     union() {
         difference(){
+            // body
             cube([bot_l, bot_w, bot_h], center = true);
-            translate([0,0,wall/2]) cube([bot_l - 2*wall, bot_w - 2*wall, bot_h-wall/2], center = true);
-            // motor holes
-            motor_w = 2.3; motor_h = 1.8;
-            translate([-bot_l/2 + motor_w/2 + wall*2/3, 0, -bot_h/2 + motor_h/2 + wall*2/3])
-            translate([0,0,0]) {
-                cube([motor_w, bot_w, motor_h], center = true);
-                rotate([90, 0, 0]) {
-                    minkowski([1, 1, 1]) {
-                        cube([motor_w,motor_h,bot_w], true)
-                        cylinder(r=0.2,h=0.1);
-                    }
+            // main cavety
+            translate([0,0,wall/2]) {
+                cube([bot_l - 2*wall, (bot_w - 2*wall) / 2, bot_h-wall/2], center = true);
+                translate([motor_w/2 + wall/2, 0, 0])
+                    cube([bot_l - 2*wall - motor_w, bot_w - 2*wall, bot_h-wall/2], center = true);
+            }
+            
+            // turrent mounts
+            translate([-bot_l/2 + 2*wall, 0, bot_h/2 ]) {
+                for(y = [bot_w/2  - 2*wall, -bot_w/2  + 2*wall]) {
+                translate([0, y, 0])
+                    bcube([1, 1, wall*3], cr = 0.3, cres=4);
                 }
+                    
+            }
+
+            // motor holes
+            translate([-bot_l/2 + motor_w/2 + wall, 0, -bot_h/2 + motor_h/2 + wall*2/3])
+            translate([0,0,0]) {
+                rotate([90, 0, 0]) bcube([motor_w,motor_h,bot_w+wall], cr=0.5, cres=10);
             }
             // back side holes
             translate([-bot_l/2+wall/2,0,wall]) {
@@ -79,7 +93,7 @@ scale(10) translate([0,0,1]) {
             }
         }
         // lid
-        translate([bot_l/2,0,0.025]) rotate([0, 20, 0]) {
+        %translate([bot_l/2,0,0.025]) rotate([0, 20, 0]) {
             translate([2,0,0]) difference() {
                 lid(bot_l, bot_w, wall/2);
                 translate([0,0,-wall]) rotate([0, -20, 0])
